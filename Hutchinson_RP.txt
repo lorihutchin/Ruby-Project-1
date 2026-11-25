@@ -1,0 +1,222 @@
+# ASSIGNMENT - Ruby Program
+# COURSE - CS 424-02
+# INSTRUCTOR - Dr. Harry S. Delugach
+# STUDENT NAME - LoriElle Hutchinson
+# DATE - 11/10/2026
+
+=begin
+This program maintains athlete registration information by reading athlete, event, and registration information from a register.txt file and organizes the information into two classes  (Athlete and Event). The Athlete class stores each athlete's ID, name, and registered events, while the Event class stores each event's ID, name, and participating athletes. Both classes include an initializer to set up their instance variables, methods to add athletes or events, methods to retrieve IDs and names, and methods to display information and count registration numbers.
+
+The program uses a file-reading loop and a part variable to identify which section of the file is being processed. It then creates objects for each
+athlete and event and stores them in separate arrays. The registration information from the third section (part 2) is stored in another array and pairs of athlete and event IDs.
+
+The program then uses nested each loops to go through the registration information, athletes, and events to match athletes to the events they participate in and vice versa. The getID methods are used to compare IDs, and when a match is found, the addEvent and addAthlete methods add the corresponding names to the internal arrays within each object. 
+
+Lastly, the program uses the output and count methods to display the events associated with each athlete and the athletes associated with each event, along with the total count for each.
+=end
+
+#CLASSES
+
+# (Class Number 1) - Athlete
+class Athlete
+
+  #Initializer/Constructor
+  def initialize(id,name)
+    @id = id
+    @name = name
+    @events = []
+  end
+  
+  #Used in "regis" loop to add an event to an athlete's event list
+  def addEvent(eventName)
+    @events.push(eventName)
+  end
+
+  #Outputs the name of the athlete and the events array. Used for final output.
+  def output()
+    puts "Name of athlete: #{@name}"
+    puts "Events: ", @events
+  end
+
+  #Outputs the number of events in the event array aka the count or length. Also used for output.
+  def eventCount()
+    puts "Number of events: ", @events.length
+  end
+
+
+  #Returns the athlete ID saved for that athlete instance. Used in the loop to see if the ID stored inside this athlete object matches the athlete ID from the registration file.
+  def getID()
+    return @id
+  end
+
+  #Returns the athlete's name saved for that athlete instance. Used in the loop to add the athlete's name to the corresponding array.
+  def getName()
+    return @name
+  end
+  
+end
+
+# (Class Number 2) - Event
+
+class Event
+  #Initializer/Constructor
+  def initialize(id,name)
+    @id = id
+    @name = name
+    @athletes = []
+  end
+
+  #Used in "regis" loop to add an athlete to the list of athletes competing in each event
+  def addAthlete(athleteName)
+    @athletes.push(athleteName)
+  end
+
+  #Outputs the name of the event and the athlete array. Used for final output.
+  def output()
+    puts "Name of event: #{@name}"
+    puts "Athletes: ", @athletes
+  end
+
+  #Outputs the number of athletes in the athlete array aka the count or length. Also used for output.
+  def athleteCount()
+    puts "Number of athletes: ", @athletes.length()
+  end
+
+ #Returns the event ID saved for that event instance. Used in the loop to see if the ID stored inside this event object matches the event ID from the registration file.
+  def getID()
+    return @id
+  end
+
+  #Returns the event name saved for that event instance. Used in the loop to add the event name to the corresponding array.
+  def getName()
+    return @name
+  end
+ 
+end
+
+#VARIABLES
+athletes = [] #[] An array that includes the ID and name of each athlete
+events = [] #[] An array that includes the ID and name of each event
+regis = [] #[] An array that includes the info read from the third section of the registration function.
+
+
+#READING IN THE REGISTER.TXT FILE
+part = 0 # Variable tells us what part of register.txt we are at (i.e. athlete (part = 0), event (part = 1), or registration (part = 2)) 
+
+# STARTS - OPENS/READS IN REGISTER.TXT FILE. - LOOP
+file = File.open("register.txt", "r")
+
+file.each_line do |line|
+  # Checks to see if we are moving onto the next section by checking if the line is empty. If empty, move on to the next section for if statements.
+  if line.strip.empty?    
+    part = part + 1
+
+  # If in part 0 (athletes), separates the ID and name and creates an Athlete object. The object is pushed to an array of all athlete objects (see athlete class).
+  elsif part == 0
+    athleteID, athleteName = line.chomp.split(/\s+/, 2)
+    athlete = Athlete.new(athleteID,athleteName)
+    athletes.push(athlete)
+    
+  # If in part 1 (events), separates the ID and name and creates an Event object. The object is pushed to an array of all event objects (see event class).
+    elsif part == 1
+    eventID, eventName = line.chomp.split(/\s+/, 2)
+    event = Event.new(eventID,eventName)
+    events.push(event)
+
+  # If in part 2 (comparison), separates the athleteID and eventID and pushes them into an array.
+  elsif part == 2
+    athleteID, eventID = line.strip.split(/\s+/, 2)
+    regis.push([athleteID,eventID])
+  end
+end 
+
+file.close
+#ENDS - OPENS/READS IN REGISTER.TXT FILE. - LOOP
+
+
+#STARTS - REGIS LOOP
+#This nested loop goes through each array in the regis, aka registration information array from part 2. If the athleteID and eventID match, then the corresponding info is added to each object.
+
+regis.each do |info|
+  athleteID = info[0]
+  eventID = info[1]
+
+  athleteFound = false
+  eventFound = false
+
+  athletes.each do |athlete|
+    if athlete.getID() == athleteID
+      athleteFound = true
+    end
+  end
+
+  events.each do |event|
+    if event.getID() == eventID
+      eventFound = true
+    end
+  end
+
+  if athleteFound == false
+    puts "Athlete ID Error! #{athleteID} was not found."
+  end
+
+  if eventFound == false
+    puts "Event ID Error! #{eventID} was not found."
+  end
+
+  if athleteFound && eventFound
+    athletes.each do |athlete|
+      if athlete.getID() == athleteID
+        events.each do |event|
+          if event.getID() == eventID
+            athlete.addEvent(event.getName())
+            event.addAthlete(athlete.getName())
+          end
+        end
+      end
+    end
+  end
+end
+
+#ENDS - REGIS LOOP
+
+
+#PROGRAM OUTPUT: 2 sections
+
+#SECTION 1: Standard output (using puts) that lists each athlete with the full name(s) of events that they are participating in and optionally the count for the number of events each athlete is participating in.
+
+puts "Section 1"
+
+athletes.each do |athlete|
+  athlete.output()
+  puts "\n"
+  athlete.eventCount()
+  puts "\n"
+end
+
+#SECTION 2: Standard output (using puts) that lists each event name with the full list of athletes participating, with an optional
+
+puts "Section 2"
+
+
+events.each do |event|
+  event.output()
+  puts "\n"
+  event.athleteCount()
+  puts "\n"
+end
+
+#END OF PROGRAM
+
+=begin
+
+I really enjoyed this assignment. It reminded me how much I enjoy learning new programming languages. It was fun learning to use Ruby to read data from an external text file and then use encapsulation, classes, and objects to organize that data. I really enjoyed creating the class and noticed many similarities to Python.
+
+I also developed a different way to program projects. Instead of creating the project in chunks, I coded in "layers" that I built upon. This way, I became accustomed to Ruby syntax and could ensure my code was semantically correct. In this process, I first coded the most basic lines, like reading in a basic text file, and then slowly expanded to meet the assignment requirements. Another example was creating separate test objects to ensure the classes and internal methods worked correctly before incorporating the read-in data.
+
+With this, my first impression of Ruby was positive. I mostly liked the language's syntax rules, but some things, such as loops, were frustrating to get used to because I kept using Python syntax. For example, making sure I had the correct number of "ends" at the end of a section or knowing when to use p versus puts took time to get used to. I do, however, like the formatting for outputting arrays and navigating data types. The language was very easy to work with when handling arrays and strings. Also, the "@" symbol for instance variables made more sense to me and let me easily distinguish these types of variables from other variables.
+
+Overall, it just took practice to get comfortable with the language and debugging since I am new to it, but it was pretty self-explanatory.
+
+
+=end
